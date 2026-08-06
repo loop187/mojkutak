@@ -573,3 +573,9 @@ export function getPlacesByCounty(zupanija: string | null | undefined): string[]
     .filter(place => PLACE_TO_COUNTIES[place].includes(zupanija))
     .sort((a, b) => a.localeCompare(b, 'hr'));
 }
+
+const countySet = new Set<string>();
+Object.values(PLACE_TO_COUNTIES).forEach((arr) => arr.forEach((c) => countySet.add(c)));
+export const COUNTIES = Array.from(countySet)
+  .sort((a, b) => a.localeCompare(b, 'hr'))
+  .map((c) => ({ label: c, value: c }));

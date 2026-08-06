@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,7 +18,9 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
-import { DANI, SADRZAJI, VENUE_TIPOVI, ZUPANIJE } from '../../constants/options';
+import { DANI, SADRZAJI, VENUE_TIPOVI } from '../../constants/options';
+import { Select } from '../../components/Select';
+import { COUNTIES, PLACE_TO_COUNTIES } from '../../constants/places';
 import { apiErrorMessage } from '../../services/api';
 import { RadnoVrijeme } from '../../services/types';
 import { createVenue, getVenue, updateVenue, uploadVenuePhoto } from '../../services/venues';
@@ -44,7 +46,6 @@ export default function VenueEditScreen() {
   const [coverBase64, setCoverBase64] = useState<string | null>(null);
   const [coverMime, setCoverMime] = useState('image/jpeg');
   const [saving, setSaving] = useState(false);
-  const [showZupanije, setShowZupanije] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -66,6 +67,16 @@ export default function VenueEditScreen() {
       })
       .catch((e) => Alert.alert('Greška', apiErrorMessage(e)));
   }, [id]);
+
+  const countyOptions = useMemo(() => COUNTIES, []);
+
+  const placeOptions = useMemo(() => {
+    if (!zupanija) return [];
+    return Object.keys(PLACE_TO_COUNTIES)
+      .filter((place) => PLACE_TO_COUNTIES[place].includes(zupanija))
+      .sort((a, b) => a.localeCompare(b, 'hr'))
+      .map((p) => ({ label: p, value: p }));
+  }, [zupanija]);
 
   const toggleSadrzaj = (value: string) => {
     setSadrzaji((prev) =>
@@ -150,7 +161,11 @@ export default function VenueEditScreen() {
   return (
     <>
       <Stack.Screen options={{ headerShown: true, title: isEdit ? 'Uredi objekt' : 'Novi objekt' }} />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'android' ? 24 : 0}
+      >
         <ScrollView style={styles.container} contentContainerStyle={{ padding: SPACING.md, paddingBottom: 60 }}>
           <TouchableOpacity style={styles.coverPicker} onPress={pickCover}>
             {coverPhoto ? (
@@ -186,31 +201,26 @@ export default function VenueEditScreen() {
             placeholderTextColor={COLORS.textSecondary}
           />
 
-          <Text style={styles.label}>Županija</Text>
-          <TouchableOpacity style={styles.input} onPress={() => setShowZupanije(!showZupanije)}>
-            <Text style={{ color: zupanija ? COLORS.text : COLORS.textSecondary }}>
-              {zupanija || 'Odaberi županiju'}
-            </Text>
-          </TouchableOpacity>
-          {showZupanije && (
-            <View style={styles.dropdown}>
-              {ZUPANIJE.map((z) => (
-                <Pressable
-                  key={z}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setZupanija(z);
-                    setShowZupanije(false);
-                  }}
-                >
-                  <Text style={{ color: COLORS.text }}>{z}</Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
+          <Select
+            label="Županija"
+            placeholder="Odaberi županiju"
+            value={zupanija}
+            onChange={(val) => {
+              setZupanija(val);
+              setMjesto('');
+            }}
+            options={countyOptions}
+          />
 
-          <Text style={styles.label}>Mjesto</Text>
-          <TextInput style={styles.input} value={mjesto} onChangeText={setMjesto} placeholder="npr. Zagreb" placeholderTextColor={COLORS.textSecondary} />
+          <Select
+            label="Mjesto"
+            placeholder={zupanija ? 'Odaberi mjesto' : 'Najprije odaberite županiju'}
+            value={mjesto}
+            onChange={setMjesto}
+            options={placeOptions}
+            disabled={!zupanija}
+            searchable
+          />
 
           <Text style={styles.label}>Adresa</Text>
           <TextInput style={styles.input} value={adresa} onChangeText={setAdresa} placeholder="npr. Ilica 1" placeholderTextColor={COLORS.textSecondary} />
