@@ -5,8 +5,18 @@
     "slug": "mojkutak",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "mojkutak",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#7A4B2A"
+    },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#7A4B2A"
+    },
     "newArchEnabled": true,
     "platforms": [
       "android"
@@ -14,6 +24,7 @@
     "android": {
       "package": "eu.usluge.mojkutak",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#7A4B2A"
       },
       "permissions": [
