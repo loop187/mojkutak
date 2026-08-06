@@ -1,5 +1,5 @@
 export const COLORS = {
-  primary: '#7A4B2A',       // topla smeđa (kava)
+  primary: '#429b96',       // topla smeđa (kava)
   primaryDark: '#5C3820',
   primaryLight: '#F3E9E1',
   accent: '#E8A33D',        // zlatno-narančasta

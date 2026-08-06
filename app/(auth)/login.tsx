@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -48,7 +49,8 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.logo}>☕ MojKutak</Text>
+        <Image source={require('../../assets/icon.png')} style={styles.logoImage} resizeMode="contain" />
+        <Text style={styles.logo}>Moj kutak</Text>
         <Text style={styles.tagline}>Pronađi svoj kutak u gradu</Text>
 
         <View style={styles.form}>
@@ -102,6 +104,7 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     backgroundColor: COLORS.background,
   },
+  logoImage: { width: 120, height: 120, alignSelf: 'center', marginBottom: SPACING.md },
   logo: { fontSize: 36, fontWeight: '800', color: COLORS.primary, textAlign: 'center' },
   tagline: { fontSize: FONT.body, color: COLORS.textSecondary, textAlign: 'center', marginTop: SPACING.xs, marginBottom: SPACING.xl },
   form: { gap: SPACING.sm },

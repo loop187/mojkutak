@@ -11,11 +11,11 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#7A4B2A"
+      "backgroundColor": "#429b96"
     },
     "notification": {
       "icon": "./assets/notification-icon.png",
-      "color": "#7A4B2A"
+      "color": "#429b96"
     },
     "newArchEnabled": true,
     "platforms": [
@@ -25,7 +25,7 @@
       "package": "eu.usluge.mojkutak",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#7A4B2A"
+        "backgroundColor": "#429b96"
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
@@ -45,7 +45,7 @@
       [
         "expo-notifications",
         {
-          "color": "#7A4B2A"
+          "color": "#429b96"
         }
       ]
     ],
