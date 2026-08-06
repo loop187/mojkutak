@@ -23,6 +23,7 @@
     ],
     "android": {
       "package": "eu.usluge.mojkutak",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#429b96"
