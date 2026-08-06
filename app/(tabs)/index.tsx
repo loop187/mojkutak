@@ -81,7 +81,7 @@ export default function SearchScreen() {
         returnKeyType="search"
       />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ gap: SPACING.xs, paddingHorizontal: SPACING.md }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ gap: SPACING.xs, paddingHorizontal: SPACING.md, alignItems: 'center' }}>
         <Pressable style={[styles.filterChip, tip === null && styles.filterChipActive]} onPress={() => setTip(null)}>
           <Text style={[styles.filterText, tip === null && styles.filterTextActive]}>Sve</Text>
         </Pressable>
@@ -144,16 +144,17 @@ const styles = StyleSheet.create({
     fontSize: FONT.body,
     color: COLORS.text,
   },
-  filterRow: { maxHeight: 40, marginBottom: SPACING.sm },
+  filterRow: { height: 46, marginBottom: SPACING.sm },
   filterChip: {
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: RADIUS.full,
     paddingHorizontal: SPACING.md,
-    paddingVertical: 4,
+    paddingVertical: 6,
     backgroundColor: COLORS.card,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 32,
   },
   filterChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   filterText: { fontSize: FONT.small, lineHeight: FONT.small, color: COLORS.text },
