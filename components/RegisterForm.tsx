@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -12,6 +12,8 @@ import {
 import { useRouter } from 'expo-router';
 import { COLORS, FONT, RADIUS, SPACING } from '../constants/theme';
 import { apiErrorMessage } from '../services/api';
+import { Select } from './Select';
+import { PLACE_TO_COUNTIES } from '../constants/places';
 import { register } from '../services/auth';
 import { registerForPushNotifications } from '../services/push';
 import { useAuthStore } from '../store/useAuthStore';
@@ -31,13 +33,31 @@ export default function RegisterForm({ role, title, subtitle, nazivLabel }: Prop
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [zupanija, setZupanija] = useState('');
+  const [mjesto, setMjesto] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const countyOptions = useMemo(() => {
+    const set = new Set<string>();
+    Object.values(PLACE_TO_COUNTIES).forEach((arr) => arr.forEach((c) => set.add(c)));
+    return Array.from(set)
+      .sort((a, b) => a.localeCompare(b, 'hr'))
+      .map((c) => ({ label: c, value: c }));
+  }, []);
+
+  const placeOptions = useMemo(() => {
+    if (!zupanija) return [];
+    return Object.keys(PLACE_TO_COUNTIES)
+      .filter((place) => PLACE_TO_COUNTIES[place].includes(zupanija))
+      .sort((a, b) => a.localeCompare(b, 'hr'))
+      .map((p) => ({ label: p, value: p }));
+  }, [zupanija]);
+
   const handleRegister = async () => {
-    if (!naziv.trim() || !username.trim() || !email.trim() || !password) {
+    if (!naziv.trim() || !username.trim() || !email.trim() || !zupanija || !mjesto || !password) {
       setError('Ispunite sva obavezna polja');
       return;
     }
@@ -60,6 +80,8 @@ export default function RegisterForm({ role, title, subtitle, nazivLabel }: Prop
         role,
         naziv: naziv.trim(),
         mobile_number: phone.trim() || undefined,
+        zupanija,
+        mjesto,
       });
       setUser(user);
       registerForPushNotifications();
@@ -109,6 +131,28 @@ export default function RegisterForm({ role, title, subtitle, nazivLabel }: Prop
           value={phone}
           onChangeText={setPhone}
         />
+
+        <Select
+          label="Županija"
+          placeholder="Odaberite županiju"
+          value={zupanija}
+          onChange={(val) => {
+            setZupanija(val);
+            setMjesto('');
+          }}
+          options={countyOptions}
+        />
+
+        <Select
+          label="Mjesto"
+          placeholder={zupanija ? 'Odaberite mjesto' : 'Najprije odaberite županiju'}
+          value={mjesto}
+          onChange={setMjesto}
+          options={placeOptions}
+          disabled={!zupanija}
+          searchable
+        />
+
         <TextInput
           style={styles.input}
           placeholder="Lozinka *"

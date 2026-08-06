@@ -20,6 +20,8 @@ export interface RegisterParams {
   role: 'owner' | 'user';
   naziv: string;
   mobile_number?: string;
+  zupanija?: string;
+  mjesto?: string;
 }
 
 export async function register(params: RegisterParams): Promise<User> {

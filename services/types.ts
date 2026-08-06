@@ -7,6 +7,8 @@ export interface User {
   role: AppRole;
   naziv: string;
   phone: string;
+  zupanija: string;
+  mjesto: string;
   photoUrl: string | null;
   licenseUntil: string | null;
   licenseExpired: boolean;
