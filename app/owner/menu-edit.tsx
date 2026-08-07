@@ -53,11 +53,18 @@ export default function MenuEditScreen() {
 
   const handleAddCategory = async () => {
     if (!newCategory.trim() || !venueId) return;
+    const trimmed = newCategory.trim();
+    const tempId = `tmp-${Date.now()}`;
+    const nextRedoslijed = menu.length;
+
+    setMenu((prev) => [...prev, { id: tempId, venueId, naziv: trimmed, redoslijed: nextRedoslijed, items: [] }]);
+    setNewCategory('');
+
     try {
-      await createCategory(venueId, newCategory.trim(), menu.length);
-      setNewCategory('');
-      load();
+      const created = await createCategory(venueId, trimmed, nextRedoslijed);
+      setMenu((prev) => prev.map((c) => (c.id === tempId ? created : c)));
     } catch (e) {
+      setMenu((prev) => prev.filter((c) => c.id !== tempId));
       Alert.alert('Greška', apiErrorMessage(e));
     }
   };
@@ -95,20 +102,69 @@ export default function MenuEditScreen() {
       Alert.alert('Greška', 'Unesite naziv i ispravnu cijenu');
       return;
     }
-    try {
-      if (editingItem) {
-        await updateItem(editingItem.id, { naziv: itemNaziv.trim(), opis: itemOpis, cijena });
-      } else if (venueId && targetCategoryId) {
-        await createItem(venueId, {
-          naziv: itemNaziv.trim(),
-          opis: itemOpis,
-          cijena,
-          categoryId: targetCategoryId,
-        });
+    const trimmedNaziv = itemNaziv.trim();
+    const trimmedOpis = itemOpis.trim();
+
+    if (editingItem) {
+      try {
+        await updateItem(editingItem.id, { naziv: trimmedNaziv, opis: trimmedOpis, cijena });
+        setItemModalVisible(false);
+        setItemNaziv('');
+        setItemOpis('');
+        setItemCijena('');
+        setEditingItem(null);
+        load();
+      } catch (e) {
+        Alert.alert('Greška', apiErrorMessage(e));
       }
-      setItemModalVisible(false);
-      load();
+      return;
+    }
+
+    if (!venueId || !targetCategoryId) return;
+
+    const tempId = `tmp-${Date.now()}`;
+    const tempItem: MenuItem = {
+      id: tempId,
+      venueId,
+      categoryId: targetCategoryId,
+      naziv: trimmedNaziv,
+      opis: trimmedOpis,
+      cijena,
+      valuta: 'EUR',
+      slika: null,
+      dostupno: true,
+      redoslijed: 0,
+    };
+
+    // Optimistički dodaj artikl odmah
+    setMenu((prev) =>
+      prev.map((c) => (c.id === targetCategoryId ? { ...c, items: [...c.items, tempItem] } : c))
+    );
+    setItemModalVisible(false);
+    setItemNaziv('');
+    setItemOpis('');
+    setItemCijena('');
+
+    try {
+      const created = await createItem(venueId, {
+        naziv: trimmedNaziv,
+        opis: trimmedOpis,
+        cijena,
+        categoryId: targetCategoryId,
+      });
+      setMenu((prev) =>
+        prev.map((c) =>
+          c.id === targetCategoryId
+            ? { ...c, items: c.items.map((i) => (i.id === tempId ? created : i)) }
+            : c
+        )
+      );
     } catch (e) {
+      setMenu((prev) =>
+        prev.map((c) =>
+          c.id === targetCategoryId ? { ...c, items: c.items.filter((i) => i.id !== tempId) } : c
+        )
+      );
       Alert.alert('Greška', apiErrorMessage(e));
     }
   };
