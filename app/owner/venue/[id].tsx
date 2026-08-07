@@ -59,7 +59,7 @@ export default function OwnerVenueScreen() {
   const handleConfirm = async (reservation: Reservation) => {
     try {
       await confirmReservation(reservation.id);
-      load();
+      await load();
     } catch (e) {
       Alert.alert('Greška', apiErrorMessage(e));
     }
@@ -74,7 +74,7 @@ export default function OwnerVenueScreen() {
         onPress: async () => {
           try {
             await rejectReservation(reservation.id);
-            load();
+            await load();
           } catch (e) {
             Alert.alert('Greška', apiErrorMessage(e));
           }
