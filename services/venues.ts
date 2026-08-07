@@ -57,6 +57,7 @@ export interface VenueInput {
   sadrzaji?: string[];
   rezervacijeUkljucene?: boolean;
   brojStolova?: number;
+  qrNarudzbe?: boolean;
   status?: 'active' | 'hidden';
 }
 
@@ -90,5 +91,16 @@ export async function uploadVenuePhoto(
 
 export async function getVenueMenu(id: string): Promise<MenuCategory[]> {
   const { data } = await api.get<MenuCategory[]>(`/venues/${id}/menu`);
+  return data;
+}
+
+export interface VenueQrCode {
+  brojStola: number;
+  code: string;
+  url: string;
+}
+
+export async function getVenueQrCodes(venueId: string): Promise<VenueQrCode[]> {
+  const { data } = await api.get<VenueQrCode[]>(`/venues/${venueId}/qr-codes`);
   return data;
 }

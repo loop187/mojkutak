@@ -104,6 +104,12 @@ export default function OwnerVenueScreen() {
             <Text style={styles.actionIcon}>👁️</Text>
             <Text style={styles.actionText}>Pregled</Text>
           </TouchableOpacity>
+          {venue?.qrNarudzbe && (
+            <TouchableOpacity style={styles.actionBtn} onPress={() => router.push(`/owner/qr-codes?venueId=${id}`)}>
+              <Text style={styles.actionIcon}>📲</Text>
+              <Text style={styles.actionText}>QR kodovi</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.filterRow}>

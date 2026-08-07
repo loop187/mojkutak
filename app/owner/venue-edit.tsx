@@ -43,6 +43,7 @@ export default function VenueEditScreen() {
   const [radnoVrijeme, setRadnoVrijeme] = useState<RadnoVrijeme>({});
   const [rezervacije, setRezervacije] = useState(true);
   const [brojStolova, setBrojStolova] = useState('1');
+  const [qrNarudzbe, setQrNarudzbe] = useState(false);
   const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
   const [coverBase64, setCoverBase64] = useState<string | null>(null);
   const [coverMime, setCoverMime] = useState('image/jpeg');
@@ -65,6 +66,7 @@ export default function VenueEditScreen() {
         setRadnoVrijeme(v.radnoVrijeme || {});
         setRezervacije(v.rezervacijeUkljucene);
         setBrojStolova(String(v.brojStolova ?? 1));
+        setQrNarudzbe(v.qrNarudzbe);
         setCoverPhoto(v.coverPhoto);
       })
       .catch((e) => Alert.alert('Greška', apiErrorMessage(e)));
@@ -144,6 +146,7 @@ export default function VenueEditScreen() {
         radnoVrijeme,
         rezervacijeUkljucene: rezervacije,
         brojStolova: Math.max(1, parseInt(brojStolova || '1', 10) || 1),
+        qrNarudzbe,
       };
 
       const venue = isEdit ? await updateVenue(id!, input) : await createVenue(input);
@@ -293,6 +296,15 @@ export default function VenueEditScreen() {
             placeholder="1"
             placeholderTextColor={COLORS.textSecondary}
           />
+
+          <View style={styles.switchRow}>
+            <Text style={styles.label}>QR kodovi za naručivanje</Text>
+            <Switch
+              value={qrNarudzbe}
+              onValueChange={setQrNarudzbe}
+              trackColor={{ true: COLORS.primary, false: COLORS.border }}
+            />
+          </View>
 
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
             {saving ? (
