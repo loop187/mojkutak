@@ -10,11 +10,13 @@ import {
   View,
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
 import { apiErrorMessage } from '../../services/api';
 import { createVenueQrCodes, getVenueQrCodes, VenueQrCode } from '../../services/venues';
 
 export default function VenueQrCodesScreen() {
+  const insets = useSafeAreaInsets();
   const { venueId } = useLocalSearchParams<{ venueId: string }>();
   const [codes, setCodes] = useState<VenueQrCode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ export default function VenueQrCodesScreen() {
       <FlatList
         data={codes}
         keyExtractor={(item) => String(item.brojStola)}
-        contentContainerStyle={{ padding: SPACING.md }}
+        contentContainerStyle={{ padding: SPACING.md, paddingTop: insets.top + SPACING.md }}
         ListHeaderComponent={
           <View style={{ marginBottom: SPACING.md }}>
             <Text style={styles.info}>
