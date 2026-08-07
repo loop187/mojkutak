@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { router } from 'expo-router';
 import api from './api';
 
 Notifications.setNotificationHandler({
@@ -9,6 +10,43 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
+let navigationListenerSet = false;
+
+/**
+ * Obradi klik na push notifikaciju i navigiraj na pripadajući ekran.
+ */
+function handleNotificationResponse(response: Notifications.NotificationResponse | null) {
+  if (!response) return;
+  const data = (response.notification.request.content.data || {}) as Record<string, any>;
+  const venueId = data.venueId as string | undefined;
+  const type = data.type as string | undefined;
+
+  if (venueId) {
+    // U pravilu otvara profil objekta. U budućnosti se može proširiti
+    // s type === 'reservation_created' -> rezervacije za vlasnike.
+    router.push(`/venues/${venueId}`);
+  }
+}
+
+/**
+ * Postavi listener za klikove na push notifikacije i obradi zadnju
+ * notifikaciju koja je otvorila aplikaciju.
+ */
+export function listenToPushNotifications(): void {
+  if (navigationListenerSet) return;
+  navigationListenerSet = true;
+
+  // Klik na notifikaciju dok je app pokrenut
+  Notifications.addNotificationResponseReceivedListener((response) => {
+    handleNotificationResponse(response);
+  });
+
+  // Ako je app otvoren klikom na notifikaciju (cold start)
+  Notifications.getLastNotificationResponseAsync().then((response) => {
+    handleNotificationResponse(response);
+  });
+}
 
 /**
  * Registrira Expo push token na backend.

@@ -4,7 +4,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { COLORS } from '../constants/theme';
 import { validate } from '../services/auth';
-import { registerForPushNotifications } from '../services/push';
+import { listenToPushNotifications, registerForPushNotifications } from '../services/push';
 import { useAuthStore } from '../store/useAuthStore';
 
 export default function RootLayout() {
@@ -20,6 +20,9 @@ export default function RootLayout() {
         if (u) registerForPushNotifications();
       })
       .finally(() => setInitialized(true));
+
+    // Postavi listener za klikove na push notifikacije
+    listenToPushNotifications();
   }, []);
 
   // Redirect logika
