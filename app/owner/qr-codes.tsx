@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   title: { fontSize: FONT.subtitle, fontWeight: '700', color: COLORS.text, marginBottom: SPACING.xs },
   url: { fontSize: FONT.small, color: COLORS.textSecondary, marginBottom: SPACING.sm },
   btn: {
-    backgroundColor: COLORS.secondary ?? COLORS.primary,
+    backgroundColor: COLORS.primary,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.md,
