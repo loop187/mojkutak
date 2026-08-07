@@ -41,6 +41,11 @@ export function listenToPushNotifications(): void {
   if (navigationListenerSet) return;
   navigationListenerSet = true;
 
+  if (Platform.OS === 'web') {
+    // Push notifikacije nisu podržane na webu bez VAPID konfiguracije
+    return;
+  }
+
   // Klik na notifikaciju dok je app pokrenut
   Notifications.addNotificationResponseReceivedListener((response) => {
     handleNotificationResponse(response);
