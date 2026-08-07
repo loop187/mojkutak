@@ -12,19 +12,40 @@ import {
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
 import { apiErrorMessage } from '../../services/api';
-import { getVenueQrCodes, VenueQrCode } from '../../services/venues';
+import { createVenueQrCodes, getVenueQrCodes, VenueQrCode } from '../../services/venues';
 
 export default function VenueQrCodesScreen() {
   const { venueId } = useLocalSearchParams<{ venueId: string }>();
   const [codes, setCodes] = useState<VenueQrCode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+
+  const load = async () => {
+    try {
+      const data = await getVenueQrCodes(venueId);
+      setCodes(data);
+    } catch (e) {
+      Alert.alert('Greška', apiErrorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    getVenueQrCodes(venueId)
-      .then(setCodes)
-      .catch((e) => Alert.alert('Greška', apiErrorMessage(e)))
-      .finally(() => setLoading(false));
+    load();
   }, [venueId]);
+
+  const handleCreate = async () => {
+    setCreating(true);
+    try {
+      const data = await createVenueQrCodes(venueId);
+      setCodes(data);
+    } catch (e) {
+      Alert.alert('Greška', apiErrorMessage(e));
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const share = async (item: VenueQrCode) => {
     try {
@@ -48,12 +69,21 @@ export default function VenueQrCodesScreen() {
         keyExtractor={(item) => String(item.brojStola)}
         contentContainerStyle={{ padding: SPACING.md }}
         ListHeaderComponent={
-          <Text style={styles.info}>
-            Ispisaj i postavi jedan QR kod po stolu. Gost skenira kod i otvara mu se meni tog stola.
-          </Text>
+          <View style={{ marginBottom: SPACING.md }}>
+            <Text style={styles.info}>
+              Isprintajte i postavite jedan QR kod po stolu. Gost skenira kod i otvara mu se meni tog stola.
+            </Text>
+            <Pressable style={styles.createBtn} onPress={handleCreate} disabled={creating}>
+              {creating ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.createBtnText}>Kreiraj kodove</Text>
+              )}
+            </Pressable>
+          </View>
         }
         ListEmptyComponent={
-          <Text style={styles.empty}>QR kodovi još nisu generirani.</Text>
+          <Text style={styles.empty}>Još nema QR kodova. Pritisni "Kreiraj kodove" iznad.</Text>
         }
         renderItem={({ item }) => (
           <View style={styles.card}>
@@ -71,8 +101,16 @@ export default function VenueQrCodesScreen() {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.background },
-  info: { fontSize: FONT.small, color: COLORS.textSecondary, marginBottom: SPACING.md },
+  info: { fontSize: FONT.small, color: COLORS.textSecondary, marginBottom: SPACING.sm },
   empty: { textAlign: 'center', color: COLORS.textSecondary, marginTop: SPACING.lg },
+  createBtn: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
+    alignItems: 'center',
+  },
+  createBtnText: { color: '#fff', fontWeight: '700', fontSize: FONT.small },
   card: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.md,
@@ -84,7 +122,7 @@ const styles = StyleSheet.create({
   title: { fontSize: FONT.subtitle, fontWeight: '700', color: COLORS.text, marginBottom: SPACING.xs },
   url: { fontSize: FONT.small, color: COLORS.textSecondary, marginBottom: SPACING.sm },
   btn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.secondary ?? COLORS.primary,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.md,

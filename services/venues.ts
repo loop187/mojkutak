@@ -104,3 +104,8 @@ export async function getVenueQrCodes(venueId: string): Promise<VenueQrCode[]> {
   const { data } = await api.get<VenueQrCode[]>(`/venues/${venueId}/qr-codes`);
   return data;
 }
+
+export async function createVenueQrCodes(venueId: string): Promise<VenueQrCode[]> {
+  const { data } = await api.post<VenueQrCode[]>(`/venues/${venueId}/qr-codes`);
+  return data;
+}
