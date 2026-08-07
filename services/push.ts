@@ -23,9 +23,13 @@ function handleNotificationResponse(response: Notifications.NotificationResponse
   const type = data.type as string | undefined;
 
   if (venueId) {
-    // U pravilu otvara profil objekta. U budućnosti se može proširiti
-    // s type === 'reservation_created' -> rezervacije za vlasnike.
-    router.push(`/venues/${venueId}`);
+    // Push vlasniku ide na owner ekran s rezervacijama,
+    // gostu na javni profil objekta.
+    const ownerTypes = ['reservation_created', 'reservation_cancelled'];
+    const path = ownerTypes.includes(type)
+      ? `/owner/venue/${venueId}`
+      : `/venues/${venueId}`;
+    router.push(path);
   }
 }
 
