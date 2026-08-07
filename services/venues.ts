@@ -56,6 +56,7 @@ export interface VenueInput {
   radnoVrijeme?: Record<string, { od: string; do: string } | null>;
   sadrzaji?: string[];
   rezervacijeUkljucene?: boolean;
+  brojStolova?: number;
   status?: 'active' | 'hidden';
 }
 

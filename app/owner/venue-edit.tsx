@@ -42,6 +42,7 @@ export default function VenueEditScreen() {
   const [sadrzaji, setSadrzaji] = useState<string[]>([]);
   const [radnoVrijeme, setRadnoVrijeme] = useState<RadnoVrijeme>({});
   const [rezervacije, setRezervacije] = useState(true);
+  const [brojStolova, setBrojStolova] = useState('1');
   const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
   const [coverBase64, setCoverBase64] = useState<string | null>(null);
   const [coverMime, setCoverMime] = useState('image/jpeg');
@@ -63,6 +64,7 @@ export default function VenueEditScreen() {
         setSadrzaji(v.sadrzaji);
         setRadnoVrijeme(v.radnoVrijeme || {});
         setRezervacije(v.rezervacijeUkljucene);
+        setBrojStolova(String(v.brojStolova ?? 1));
         setCoverPhoto(v.coverPhoto);
       })
       .catch((e) => Alert.alert('Greška', apiErrorMessage(e)));
@@ -141,6 +143,7 @@ export default function VenueEditScreen() {
         sadrzaji,
         radnoVrijeme,
         rezervacijeUkljucene: rezervacije,
+        brojStolova: Math.max(1, parseInt(brojStolova || '1', 10) || 1),
       };
 
       const venue = isEdit ? await updateVenue(id!, input) : await createVenue(input);
@@ -280,6 +283,16 @@ export default function VenueEditScreen() {
               trackColor={{ true: COLORS.primary, false: COLORS.border }}
             />
           </View>
+
+          <Text style={styles.label}>Broj stolova</Text>
+          <TextInput
+            style={styles.input}
+            value={brojStolova}
+            onChangeText={setBrojStolova}
+            keyboardType="number-pad"
+            placeholder="1"
+            placeholderTextColor={COLORS.textSecondary}
+          />
 
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
             {saving ? (

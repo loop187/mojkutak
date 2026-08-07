@@ -26,11 +26,12 @@ import { DANI, sadrzajLabel, tipLabel } from '../../constants/options';
 import { apiErrorMessage } from '../../services/api';
 import { addFavorite, removeFavorite } from '../../services/favorites';
 import { getVenuePosts } from '../../services/posts';
-import { createReservation } from '../../services/reservations';
+import { createReservation, getAvailableTables } from '../../services/reservations';
 import { createReview, getVenueReviews } from '../../services/reviews';
 import { MenuCategory, Post, Review, Venue } from '../../services/types';
 import { getVenue, getVenueMenu } from '../../services/venues';
 import { useAuthStore } from '../../store/useAuthStore';
+import { Select } from '../../components/Select';
 
 type TabKey = 'info' | 'meni' | 'objave' | 'recenzije';
 
@@ -54,6 +55,9 @@ export default function VenueDetailScreen() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [brojOsoba, setBrojOsoba] = useState('2');
   const [napomena, setNapomena] = useState('');
+  const [stol, setStol] = useState('');
+  const [slobodniStolovi, setSlobodniStolovi] = useState<number[]>([]);
+  const [loadingTables, setLoadingTables] = useState(false);
   const [reserving, setReserving] = useState(false);
 
   // Recenzija
@@ -86,6 +90,26 @@ export default function VenueDetailScreen() {
     }, [load])
   );
 
+  // Dohvati slobodne stolove kad se promijeni datum ili vrijeme
+  useEffect(() => {
+    if (!venue || !venue.brojStolova) return;
+    const fetchTables = async () => {
+      setLoadingTables(true);
+      try {
+        const datum = resDate.toISOString().slice(0, 10);
+        const vrijeme = `${String(resDate.getHours()).padStart(2, '0')}:${String(resDate.getMinutes()).padStart(2, '0')}`;
+        const { slobodni } = await getAvailableTables(venue.id, datum, vrijeme);
+        setSlobodniStolovi(slobodni);
+        if (stol && !slobodni.includes(parseInt(stol, 10))) setStol('');
+      } catch {
+        setSlobodniStolovi([]);
+      } finally {
+        setLoadingTables(false);
+      }
+    };
+    fetchTables();
+  }, [resDate, venue?.brojStolova]);
+
   if (!venue) {
     return (
       <View style={styles.loading}>
@@ -112,17 +136,23 @@ export default function VenueDetailScreen() {
 
   const handleReserve = async () => {
     const broj = parseInt(brojOsoba, 10);
+    const stolBroj = parseInt(stol, 10);
     if (!broj || broj < 1) {
       Alert.alert('Greška', 'Unesite ispravan broj osoba');
+      return;
+    }
+    if (!stolBroj || stolBroj < 1) {
+      Alert.alert('Greška', 'Odaberite stol');
       return;
     }
     setReserving(true);
     try {
       const datum = resDate.toISOString().slice(0, 10);
       const vrijeme = `${String(resDate.getHours()).padStart(2, '0')}:${String(resDate.getMinutes()).padStart(2, '0')}`;
-      await createReservation(venue.id, { datum, vrijeme, brojOsoba: broj, napomena });
+      await createReservation(venue.id, { datum, vrijeme, brojOsoba: broj, stol: stolBroj, napomena });
       setReserveVisible(false);
       setNapomena('');
+      setStol('');
       Alert.alert('Uspjeh', 'Rezervacija poslana! Dobit ćete obavijest kada ju ugostitelj potvrdi.');
     } catch (e) {
       Alert.alert('Greška', apiErrorMessage(e));
@@ -386,6 +416,16 @@ export default function VenueDetailScreen() {
               value={brojOsoba}
               onChangeText={setBrojOsoba}
             />
+
+            <Select
+              label="Odaberite stol"
+              placeholder={loadingTables ? 'Učitavanje stolova...' : 'Odaberite stol'}
+              options={slobodniStolovi.map((s) => ({ label: `Stol ${s}`, value: String(s) }))}
+              value={stol}
+              onChange={setStol}
+              disabled={loadingTables || slobodniStolovi.length === 0}
+            />
+
             <TextInput
               style={[styles.modalInput, { height: 70 }]}
               placeholder="Napomena (opcionalno)"

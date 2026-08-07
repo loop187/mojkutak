@@ -52,6 +52,7 @@ export default function ReservationCard({ reservation, perspective, onConfirm, o
 
       <Text style={styles.detail}>
         📅 {formatDate(reservation.datum)} u {reservation.vrijeme} · 👥 {reservation.brojOsoba} {reservation.brojOsoba === 1 ? 'osoba' : 'osobe/a'}
+        {reservation.stol ? ` · Stol ${reservation.stol}` : ''}
       </Text>
 
       {perspective === 'owner' && !!reservation.userPhone && (

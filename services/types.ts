@@ -36,6 +36,7 @@ export interface Venue {
   radnoVrijeme: RadnoVrijeme;
   sadrzaji: string[];
   rezervacijeUkljucene: boolean;
+  brojStolova: number;
   coverPhoto: string | null;
   gallery: string[];
   ratingAvg: number;
@@ -95,6 +96,7 @@ export interface Reservation {
   datum: string;
   vrijeme: string;
   brojOsoba: number;
+  stol: number | null;
   napomena: string;
   odgovorUgostitelja: string;
   createdAt: string;
