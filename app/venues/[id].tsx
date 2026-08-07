@@ -14,7 +14,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MenuSection from '../../components/MenuSection';
 import PostCard from '../../components/PostCard';
@@ -35,6 +36,8 @@ type TabKey = 'info' | 'meni' | 'objave' | 'recenzije';
 
 export default function VenueDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
 
   const [venue, setVenue] = useState<Venue | null>(null);
@@ -150,7 +153,40 @@ export default function VenueDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: venue.naziv, headerBackTitle: 'Natrag' }} />
+      <Stack.Screen
+        options={{
+          header: () => (
+            <View
+              style={{
+                paddingTop: insets.top + 8,
+                paddingHorizontal: SPACING.md,
+                paddingBottom: SPACING.sm,
+                backgroundColor: COLORS.card,
+                borderBottomWidth: 1,
+                borderBottomColor: COLORS.border,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+                <Text style={{ fontSize: 24, color: COLORS.primary }}>←</Text>
+              </TouchableOpacity>
+              <Text
+                style={{
+                  marginLeft: SPACING.sm,
+                  fontSize: FONT.subtitle,
+                  fontWeight: '700',
+                  color: COLORS.text,
+                  flex: 1,
+                }}
+                numberOfLines={1}
+              >
+                {venue.naziv}
+              </Text>
+            </View>
+          ),
+        }}
+      />
       <ScrollView style={styles.container}>
         {venue.coverPhoto ? (
           <Image source={{ uri: venue.coverPhoto }} style={styles.cover} />
