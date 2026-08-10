@@ -25,12 +25,13 @@ export default function RootLayout() {
     listenToPushNotifications();
   }, []);
 
-  // Redirect logika
+  // Redirect logika (ne diraj naruci deep link)
   useEffect(() => {
     if (!initialized) return;
     const inAuthGroup = segments[0] === '(auth)';
+    const inOrderScreen = segments[0] === 'naruci';
 
-    if (!user && !inAuthGroup) {
+    if (!user && !inAuthGroup && !inOrderScreen) {
       router.replace('/(auth)/login');
     } else if (user && inAuthGroup) {
       router.replace('/(tabs)');
