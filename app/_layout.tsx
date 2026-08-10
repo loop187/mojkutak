@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Linking from 'expo-linking';
 import { COLORS } from '../constants/theme';
 import { validate } from '../services/auth';
 import { listenToPushNotifications, registerForPushNotifications } from '../services/push';
@@ -23,7 +24,27 @@ export default function RootLayout() {
 
     // Postavi listener za klikove na push notifikacije
     listenToPushNotifications();
+
+    // Obradi deep link za narudžbu
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLink(url);
+    });
+
+    const sub = Linking.addEventListener('url', (event) => {
+      handleDeepLink(event.url);
+    });
+
+    return () => {
+      sub.remove();
+    };
   }, []);
+
+  const handleDeepLink = (url: string) => {
+    const parsed = Linking.parse(url);
+    if (parsed.path === 'naruci' && parsed.queryParams?.code) {
+      router.push(`/naruci?code=${parsed.queryParams.code}`);
+    }
+  };
 
   // Redirect logika (ne diraj naruci deep link)
   useEffect(() => {
