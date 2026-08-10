@@ -24,6 +24,7 @@
     ],
     "android": {
       "package": "eu.usluge.mojkutak",
+      "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
