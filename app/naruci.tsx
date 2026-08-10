@@ -13,7 +13,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONT, RADIUS, SPACING } from '../constants/theme';
 import { apiErrorMessage } from '../services/api';
-import { getVenueMenu, MenuCategory, MenuItem } from '../services/venues';
+import { getVenueMenu } from '../services/venues';
+import { MenuCategory, MenuItem } from '../services/types';
 import { createOrder } from '../services/orders';
 import { QrScanResult, scanQrCode } from '../services/scan';
 
