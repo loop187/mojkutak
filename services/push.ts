@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { router } from 'expo-router';
 import api from './api';
@@ -6,6 +7,8 @@ import api from './api';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -26,7 +29,7 @@ function handleNotificationResponse(response: Notifications.NotificationResponse
     // Push vlasniku ide na owner ekran s rezervacijama,
     // gostu na javni profil objekta.
     const ownerTypes = ['reservation_created', 'reservation_cancelled'];
-    const path = ownerTypes.includes(type)
+    const path = ownerTypes.includes(type ?? '')
       ? `/owner/venue/${venueId}`
       : `/venues/${venueId}`;
     router.push(path);
@@ -81,7 +84,13 @@ export async function registerForPushNotifications(): Promise<void> {
 
     if (finalStatus !== 'granted') return;
 
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    if (!projectId) {
+      console.warn('[push] Nedostaje EAS projectId. Token nije registriran.');
+      return;
+    }
+
+    const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
     const token = tokenData.data;
 
     if (token) {
