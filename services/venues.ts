@@ -98,6 +98,7 @@ export interface VenueQrCode {
   brojStola: number;
   code: string;
   url: string;
+  imageUrl: string;
 }
 
 export async function getVenueQrCodes(venueId: string): Promise<VenueQrCode[]> {

@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Pressable,
   Share,
   StyleSheet,
@@ -90,6 +91,7 @@ export default function VenueQrCodesScreen() {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.title}>Stol {item.brojStola}</Text>
+            <Image source={{ uri: item.imageUrl }} style={styles.qrImage} />
             <Text style={styles.url}>{item.url}</Text>
             <Pressable style={styles.btn} onPress={() => share(item)}>
               <Text style={styles.btnText}>Podijeli URL</Text>
@@ -122,7 +124,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   title: { fontSize: FONT.subtitle, fontWeight: '700', color: COLORS.text, marginBottom: SPACING.xs },
-  url: { fontSize: FONT.small, color: COLORS.textSecondary, marginBottom: SPACING.sm },
+  qrImage: { width: 200, height: 200, alignSelf: 'center', marginBottom: SPACING.sm },
+  url: { fontSize: FONT.small, color: COLORS.textSecondary, marginBottom: SPACING.sm, textAlign: 'center' },
   btn: {
     backgroundColor: COLORS.primary,
     paddingVertical: SPACING.sm,
