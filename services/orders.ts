@@ -30,3 +30,7 @@ export async function getOwnerOrders(venueId: string): Promise<Order[]> {
   const { data } = await api.get<Order[]>('/owner/orders', { params: { venueId } });
   return data;
 }
+
+export async function markOrderDone(orderId: number): Promise<void> {
+  await api.post(`/orders/${orderId}/done`);
+}

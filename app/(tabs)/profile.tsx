@@ -139,10 +139,15 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Moja radna mjesta</Text>
           {workplaces.map((wp) => (
             <View key={wp.venueId} style={styles.infoRow}>
-              <View style={{ flex: 1 }}>
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                onPress={() => router.push(`/owner/orders?venueId=${wp.venueId}`)}
+              >
                 <Text style={styles.infoValue}>{wp.venueNaziv}</Text>
-                {!!wp.mjesto && <Text style={styles.infoLabel}>{wp.mjesto}</Text>}
-              </View>
+                <Text style={styles.infoLabel}>
+                  {wp.mjesto ? `${wp.mjesto} · ` : ''}Otvori narudžbe →
+                </Text>
+              </TouchableOpacity>
               <View style={{ alignItems: 'flex-end' }}>
                 <Switch
                   value={wp.uSmjeni}

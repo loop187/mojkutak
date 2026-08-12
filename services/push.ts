@@ -26,8 +26,12 @@ function handleNotificationResponse(response: Notifications.NotificationResponse
   const type = data.type as string | undefined;
 
   if (venueId) {
-    // Push vlasniku ide na owner ekran s rezervacijama,
+    // Push osoblju ide na pripadajući owner ekran,
     // gostu na javni profil objekta.
+    if (type === 'order_created') {
+      router.push(`/owner/orders?venueId=${venueId}`);
+      return;
+    }
     const ownerTypes = ['reservation_created', 'reservation_cancelled'];
     const path = ownerTypes.includes(type ?? '')
       ? `/owner/venue/${venueId}`
