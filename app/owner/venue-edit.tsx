@@ -44,6 +44,7 @@ export default function VenueEditScreen() {
   const [rezervacije, setRezervacije] = useState(true);
   const [brojStolova, setBrojStolova] = useState('1');
   const [qrNarudzbe, setQrNarudzbe] = useState(false);
+  const [dostava, setDostava] = useState(false);
   const [coverPhoto, setCoverPhoto] = useState<string | null>(null);
   const [coverBase64, setCoverBase64] = useState<string | null>(null);
   const [coverMime, setCoverMime] = useState('image/jpeg');
@@ -67,6 +68,7 @@ export default function VenueEditScreen() {
         setRezervacije(v.rezervacijeUkljucene);
         setBrojStolova(String(v.brojStolova ?? 1));
         setQrNarudzbe(v.qrNarudzbe);
+        setDostava(v.dostava);
         setCoverPhoto(v.coverPhoto);
       })
       .catch((e) => Alert.alert('Greška', apiErrorMessage(e)));
@@ -147,6 +149,7 @@ export default function VenueEditScreen() {
         rezervacijeUkljucene: rezervacije,
         brojStolova: Math.max(1, parseInt(brojStolova || '1', 10) || 1),
         qrNarudzbe,
+        dostava,
       };
 
       const venue = isEdit ? await updateVenue(id!, input) : await createVenue(input);
@@ -302,6 +305,15 @@ export default function VenueEditScreen() {
             <Switch
               value={qrNarudzbe}
               onValueChange={setQrNarudzbe}
+              trackColor={{ true: COLORS.primary, false: COLORS.border }}
+            />
+          </View>
+
+          <View style={styles.switchRow}>
+            <Text style={styles.label}>Dostava</Text>
+            <Switch
+              value={dostava}
+              onValueChange={setDostava}
               trackColor={{ true: COLORS.primary, false: COLORS.border }}
             />
           </View>

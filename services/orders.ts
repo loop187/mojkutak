@@ -7,7 +7,10 @@ export interface OrderItemInput {
 
 export interface Order {
   id: number;
+  tip: 'stol' | 'dostava';
   brojStola: number;
+  adresa: string | null;
+  telefon: string | null;
   status: string;
   ukupno: number;
   napomena?: string;
@@ -23,6 +26,24 @@ export interface Order {
 
 export async function createOrder(code: string, items: OrderItemInput[], napomena?: string): Promise<{ orderId: number }> {
   const { data } = await api.post<{ orderId: number }>('/orders', { code, items, napomena });
+  return data;
+}
+
+export async function createDeliveryOrder(
+  venueId: string,
+  items: OrderItemInput[],
+  adresa: string,
+  telefon: string,
+  napomena?: string
+): Promise<{ orderId: number }> {
+  const { data } = await api.post<{ orderId: number }>('/orders', {
+    tip: 'dostava',
+    venueId,
+    items,
+    adresa,
+    telefon,
+    napomena,
+  });
   return data;
 }
 

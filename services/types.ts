@@ -38,6 +38,7 @@ export interface Venue {
   rezervacijeUkljucene: boolean;
   brojStolova: number;
   qrNarudzbe: boolean;
+  dostava: boolean;
   coverPhoto: string | null;
   gallery: string[];
   ratingAvg: number;

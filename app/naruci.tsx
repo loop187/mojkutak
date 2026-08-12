@@ -13,9 +13,9 @@ import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONT, RADIUS, SPACING } from '../constants/theme';
 import { apiErrorMessage } from '../services/api';
-import { getVenueMenu } from '../services/venues';
-import { MenuCategory, MenuItem } from '../services/types';
-import { createOrder } from '../services/orders';
+import { getVenue, getVenueMenu } from '../services/venues';
+import { MenuCategory, MenuItem, Venue } from '../services/types';
+import { createDeliveryOrder, createOrder } from '../services/orders';
 import { QrScanResult, scanQrCode } from '../services/scan';
 
 interface CartItem {
@@ -24,30 +24,40 @@ interface CartItem {
 }
 
 export default function NaruciScreen() {
-  const { code } = useLocalSearchParams<{ code: string }>();
+  const { code, venueId } = useLocalSearchParams<{ code?: string; venueId?: string }>();
   const insets = useSafeAreaInsets();
+  const isDelivery = !code && !!venueId;
   const [scan, setScan] = useState<QrScanResult | null>(null);
+  const [deliveryVenue, setDeliveryVenue] = useState<Venue | null>(null);
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState<Record<string, CartItem>>({});
   const [napomena, setNapomena] = useState('');
+  const [adresa, setAdresa] = useState('');
+  const [telefon, setTelefon] = useState('');
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (!code) return;
+    if (!code && !venueId) return;
     (async () => {
       try {
-        const result = await scanQrCode(code);
-        setScan(result);
-        const menuData = await getVenueMenu(String(result.venue.id));
-        setMenu(menuData);
+        if (isDelivery) {
+          const [v, menuData] = await Promise.all([getVenue(venueId!), getVenueMenu(venueId!)]);
+          setDeliveryVenue(v);
+          setMenu(menuData);
+        } else if (code) {
+          const result = await scanQrCode(code);
+          setScan(result);
+          const menuData = await getVenueMenu(String(result.venue.id));
+          setMenu(menuData);
+        }
       } catch (e) {
         Alert.alert('Greška', apiErrorMessage(e));
       } finally {
         setLoading(false);
       }
     })();
-  }, [code]);
+  }, [code, venueId]);
 
   const ukupno = useMemo(() => {
     return Object.values(cart).reduce((sum, ci) => sum + ci.item.cijena * ci.kolicina, 0);
@@ -74,10 +84,19 @@ export default function NaruciScreen() {
       Alert.alert('Košarica je prazna');
       return;
     }
+    if (isDelivery && (!adresa.trim() || !telefon.trim())) {
+      Alert.alert('Unesite adresu i telefon za dostavu');
+      return;
+    }
     setSending(true);
     try {
-      await createOrder(code, items, napomena || undefined);
-      Alert.alert('Narudžba zaprimljena', 'Konobar će vam uskoro donijeti narudžbu.');
+      if (isDelivery) {
+        await createDeliveryOrder(venueId!, items, adresa.trim(), telefon.trim(), napomena || undefined);
+        Alert.alert('Narudžba zaprimljena', 'Dostava je na putu čim je objekt potvrdi.');
+      } else {
+        await createOrder(code!, items, napomena || undefined);
+        Alert.alert('Narudžba zaprimljena', 'Konobar će vam uskoro donijeti narudžbu.');
+      }
       setCart({});
       setNapomena('');
     } catch (e) {
@@ -95,13 +114,15 @@ export default function NaruciScreen() {
     );
   }
 
-  if (!scan) {
+  if (!scan && !deliveryVenue) {
     return (
       <View style={[styles.centered, { paddingTop: insets.top }]}>
-        <Text style={styles.empty}>QR kod nije pronađen.</Text>
+        <Text style={styles.empty}>{isDelivery ? 'Objekt nije pronađen.' : 'QR kod nije pronađen.'}</Text>
       </View>
     );
   }
+
+  const venueNaziv = isDelivery ? deliveryVenue!.naziv : scan!.venue.naziv;
 
   return (
     <View style={styles.wrapper}>
@@ -109,8 +130,8 @@ export default function NaruciScreen() {
         contentContainerStyle={{ padding: SPACING.md, paddingTop: insets.top + SPACING.md, paddingBottom: 140 }}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>{scan.venue.naziv}</Text>
-          <Text style={styles.subtitle}>Stol {scan.brojStola}</Text>
+          <Text style={styles.title}>{venueNaziv}</Text>
+          <Text style={styles.subtitle}>{isDelivery ? 'Dostava' : `Stol ${scan!.brojStola}`}</Text>
         </View>
 
         <Text style={styles.section}>Meni</Text>
@@ -141,6 +162,27 @@ export default function NaruciScreen() {
             })}
           </View>
         ))}
+
+        {isDelivery && (
+          <>
+            <Text style={styles.section}>Podaci za dostavu</Text>
+            <TextInput
+              style={[styles.input, { minHeight: 0, marginBottom: SPACING.sm }]}
+              value={adresa}
+              onChangeText={setAdresa}
+              placeholder="Adresa dostave"
+              placeholderTextColor={COLORS.textSecondary}
+            />
+            <TextInput
+              style={[styles.input, { minHeight: 0, marginBottom: SPACING.md }]}
+              value={telefon}
+              onChangeText={setTelefon}
+              placeholder="Broj telefona"
+              placeholderTextColor={COLORS.textSecondary}
+              keyboardType="phone-pad"
+            />
+          </>
+        )}
 
         <Text style={styles.section}>Napomena</Text>
         <TextInput

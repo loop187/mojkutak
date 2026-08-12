@@ -104,7 +104,9 @@ export default function VenueOrdersScreen() {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text style={styles.table}>Stol {item.brojStola}</Text>
+                <Text style={styles.table}>
+                  {item.tip === 'dostava' ? '🛵 Dostava' : `Stol ${item.brojStola}`}
+                </Text>
                 <Text style={styles.time}>
                   {new Date(item.createdAt.replace(' ', 'T')).toLocaleTimeString('hr-HR', {
                     hour: '2-digit',
@@ -112,6 +114,12 @@ export default function VenueOrdersScreen() {
                   })}
                 </Text>
               </View>
+              {item.tip === 'dostava' && (
+                <View style={{ marginBottom: SPACING.xs }}>
+                  {!!item.adresa && <Text style={styles.delivery}>📍 {item.adresa}</Text>}
+                  {!!item.telefon && <Text style={styles.delivery}>📞 {item.telefon}</Text>}
+                </View>
+              )}
               {item.items.map((oi) => (
                 <View key={oi.id} style={styles.itemRow}>
                   <Text style={styles.itemName}>
@@ -178,6 +186,7 @@ const styles = StyleSheet.create({
   itemName: { fontSize: FONT.body, color: COLORS.text },
   itemPrice: { fontSize: FONT.body, color: COLORS.textSecondary },
   note: { fontSize: FONT.small, color: COLORS.textSecondary, marginTop: SPACING.xs, fontStyle: 'italic' },
+  delivery: { fontSize: FONT.small, color: COLORS.text, marginBottom: 2 },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',

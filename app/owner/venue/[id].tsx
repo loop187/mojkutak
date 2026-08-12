@@ -114,7 +114,7 @@ export default function OwnerVenueScreen() {
               <Text style={styles.actionText}>QR kodovi</Text>
             </TouchableOpacity>
           )}
-          {venue?.qrNarudzbe && (
+          {(venue?.qrNarudzbe || venue?.dostava) && (
             <TouchableOpacity style={styles.actionBtn} onPress={() => router.push(`/owner/orders?venueId=${id}`)}>
               <Text style={styles.actionIcon}>🧾</Text>
               <Text style={styles.actionText}>Narudžbe</Text>

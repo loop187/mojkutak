@@ -250,6 +250,15 @@ export default function VenueDetailScreen() {
           </TouchableOpacity>
         )}
 
+        {venue.dostava && !isOwnVenue && (
+          <TouchableOpacity
+            style={[styles.reserveBtn, { marginTop: venue.rezervacijeUkljucene ? SPACING.sm : 0 }]}
+            onPress={() => router.push(`/naruci?venueId=${venue.id}`)}
+          >
+            <Text style={styles.reserveBtnText}>🛵 Naruči dostavu</Text>
+          </TouchableOpacity>
+        )}
+
         <View style={styles.tabs}>
           {([
             ['info', 'Info'],

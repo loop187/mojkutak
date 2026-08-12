@@ -58,6 +58,7 @@ export interface VenueInput {
   rezervacijeUkljucene?: boolean;
   brojStolova?: number;
   qrNarudzbe?: boolean;
+  dostava?: boolean;
   status?: 'active' | 'hidden';
 }
 
