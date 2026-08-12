@@ -34,7 +34,7 @@ function handleNotificationResponse(response: Notifications.NotificationResponse
     }
     const ownerTypes = ['reservation_created', 'reservation_cancelled'];
     const path = ownerTypes.includes(type ?? '')
-      ? `/owner/venue/${venueId}`
+      ? `/owner/reservations?venueId=${venueId}`
       : `/venues/${venueId}`;
     router.push(path);
   }

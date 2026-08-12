@@ -163,15 +163,22 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Moja radna mjesta</Text>
           {workplaces.map((wp) => (
             <View key={wp.venueId} style={styles.infoRow}>
-              <TouchableOpacity
-                style={{ flex: 1 }}
-                onPress={() => router.push(`/owner/orders?venueId=${wp.venueId}`)}
-              >
+              <View style={{ flex: 1 }}>
                 <Text style={styles.infoValue}>{wp.venueNaziv}</Text>
-                <Text style={styles.infoLabel}>
-                  {wp.mjesto ? `${wp.mjesto} · ` : ''}Otvori narudžbe →
-                </Text>
-              </TouchableOpacity>
+                {!!wp.mjesto && <Text style={styles.infoLabel}>{wp.mjesto}</Text>}
+                <View style={{ flexDirection: 'row', gap: SPACING.sm, marginTop: 2 }}>
+                  <TouchableOpacity onPress={() => router.push(`/owner/orders?venueId=${wp.venueId}`)}>
+                    <Text style={{ color: COLORS.primary, fontSize: FONT.small, fontWeight: '600' }}>
+                      Narudžbe →
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => router.push(`/owner/reservations?venueId=${wp.venueId}`)}>
+                    <Text style={{ color: COLORS.primary, fontSize: FONT.small, fontWeight: '600' }}>
+                      Rezervacije →
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Switch
                   value={wp.uSmjeni}
