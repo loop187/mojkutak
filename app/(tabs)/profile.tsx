@@ -1,29 +1,55 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Image,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import LicenseExpiredModal from '../../components/LicenseExpiredModal';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
 import { apiErrorMessage } from '../../services/api';
 import { logout, uploadProfilePhoto, validate } from '../../services/auth';
+import { getMyWorkplaces, setShift, Workplace } from '../../services/staff';
 import { useAuthStore } from '../../store/useAuthStore';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, setUser } = useAuthStore();
   const [licenseModalVisible, setLicenseModalVisible] = useState(false);
+  const [workplaces, setWorkplaces] = useState<Workplace[]>([]);
+
+  const isOwner = user?.role === 'owner';
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user || isOwner) return;
+      getMyWorkplaces()
+        .then(setWorkplaces)
+        .catch(() => {});
+    }, [user?.id, isOwner])
+  );
 
   if (!user) return null;
 
-  const isOwner = user.role === 'owner';
+  const toggleShift = async (wp: Workplace, value: boolean) => {
+    setWorkplaces((prev) =>
+      prev.map((w) => (w.venueId === wp.venueId ? { ...w, uSmjeni: value } : w))
+    );
+    try {
+      await setShift(wp.venueId, value);
+    } catch (e) {
+      setWorkplaces((prev) =>
+        prev.map((w) => (w.venueId === wp.venueId ? { ...w, uSmjeni: !value } : w))
+      );
+      Alert.alert('Greška', apiErrorMessage(e));
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -105,6 +131,29 @@ export default function ProfileScreen() {
               {user.licenseExpired ? 'Kupi licencu' : 'Produlji licencu'}
             </Text>
           </TouchableOpacity>
+        </View>
+      )}
+
+      {!isOwner && workplaces.length > 0 && (
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Moja radna mjesta</Text>
+          {workplaces.map((wp) => (
+            <View key={wp.venueId} style={styles.infoRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.infoValue}>{wp.venueNaziv}</Text>
+                {!!wp.mjesto && <Text style={styles.infoLabel}>{wp.mjesto}</Text>}
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Switch
+                  value={wp.uSmjeni}
+                  onValueChange={(v) => toggleShift(wp, v)}
+                  trackColor={{ false: COLORS.border, true: COLORS.primary }}
+                  thumbColor="#fff"
+                />
+                <Text style={styles.infoLabel}>{wp.uSmjeni ? 'U smjeni' : 'Nije u smjeni'}</Text>
+              </View>
+            </View>
+          ))}
         </View>
       )}
 

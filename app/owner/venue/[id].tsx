@@ -100,6 +100,10 @@ export default function OwnerVenueScreen() {
             <Text style={styles.actionIcon}>📢</Text>
             <Text style={styles.actionText}>Objava</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => router.push(`/owner/staff?venueId=${id}`)}>
+            <Text style={styles.actionIcon}>🧑‍🍳</Text>
+            <Text style={styles.actionText}>Radnici</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => router.push(`/venues/${id}`)}>
             <Text style={styles.actionIcon}>👁️</Text>
             <Text style={styles.actionText}>Pregled</Text>
