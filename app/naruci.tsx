@@ -16,7 +16,9 @@ import { apiErrorMessage } from '../services/api';
 import { getVenue, getVenueMenu } from '../services/venues';
 import { MenuCategory, MenuItem, Venue } from '../services/types';
 import { createDeliveryOrder, createOrder } from '../services/orders';
+import { getMyVenueLoyalty, LoyaltyReward, MyVenueLoyalty } from '../services/loyalty';
 import { QrScanResult, scanQrCode } from '../services/scan';
+import { useAuthStore } from '../store/useAuthStore';
 
 interface CartItem {
   item: MenuItem;
@@ -36,20 +38,31 @@ export default function NaruciScreen() {
   const [adresa, setAdresa] = useState('');
   const [telefon, setTelefon] = useState('');
   const [sending, setSending] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const [loyalty, setLoyalty] = useState<MyVenueLoyalty | null>(null);
+  const [selectedReward, setSelectedReward] = useState<LoyaltyReward | null>(null);
 
   useEffect(() => {
     if (!code && !venueId) return;
     (async () => {
       try {
+        let resolvedVenueId: string | null = null;
         if (isDelivery) {
           const [v, menuData] = await Promise.all([getVenue(venueId!), getVenueMenu(venueId!)]);
           setDeliveryVenue(v);
           setMenu(menuData);
+          resolvedVenueId = v.id;
         } else if (code) {
           const result = await scanQrCode(code);
           setScan(result);
           const menuData = await getVenueMenu(String(result.venue.id));
           setMenu(menuData);
+          resolvedVenueId = String(result.venue.id);
+        }
+        // Loyalty bodovi i nagrade (samo za ulogirane)
+        if (resolvedVenueId && user) {
+          const l = await getMyVenueLoyalty(resolvedVenueId);
+          if (l) setLoyalty(l);
         }
       } catch (e) {
         Alert.alert('Greška', apiErrorMessage(e));
@@ -59,9 +72,12 @@ export default function NaruciScreen() {
     })();
   }, [code, venueId]);
 
+  const rewardPrice = (r: LoyaltyReward) => Math.round(r.cijena * (1 - r.popust / 100) * 100) / 100;
+
   const ukupno = useMemo(() => {
-    return Object.values(cart).reduce((sum, ci) => sum + ci.item.cijena * ci.kolicina, 0);
-  }, [cart]);
+    const base = Object.values(cart).reduce((sum, ci) => sum + ci.item.cijena * ci.kolicina, 0);
+    return base + (selectedReward ? rewardPrice(selectedReward) : 0);
+  }, [cart, selectedReward]);
 
   const updateCart = (item: MenuItem, delta: number) => {
     setCart((prev) => {
@@ -80,7 +96,7 @@ export default function NaruciScreen() {
       menuItemId: ci.item.id,
       kolicina: ci.kolicina,
     }));
-    if (items.length === 0) {
+    if (items.length === 0 && !selectedReward) {
       Alert.alert('Košarica je prazna');
       return;
     }
@@ -90,15 +106,20 @@ export default function NaruciScreen() {
     }
     setSending(true);
     try {
+      const rewardId = selectedReward?.id;
       if (isDelivery) {
-        await createDeliveryOrder(venueId!, items, adresa.trim(), telefon.trim(), napomena || undefined);
+        await createDeliveryOrder(venueId!, items, adresa.trim(), telefon.trim(), napomena || undefined, rewardId);
         Alert.alert('Narudžba zaprimljena', 'Dostava je na putu čim je objekt potvrdi.');
       } else {
-        await createOrder(code!, items, napomena || undefined);
+        await createOrder(code!, items, napomena || undefined, rewardId);
         Alert.alert('Narudžba zaprimljena', 'Konobar će vam uskoro donijeti narudžbu.');
       }
       setCart({});
       setNapomena('');
+      setSelectedReward(null);
+      if (loyalty && selectedReward) {
+        setLoyalty({ ...loyalty, bodovi: loyalty.bodovi - selectedReward.bodovi });
+      }
     } catch (e) {
       Alert.alert('Greška', apiErrorMessage(e));
     } finally {
@@ -162,6 +183,46 @@ export default function NaruciScreen() {
             })}
           </View>
         ))}
+
+        {loyalty && (
+          <>
+            <Text style={styles.section}>⭐ Loyalty — imaš {loyalty.bodovi} bodova</Text>
+            {loyalty.rewards.length === 0 && (
+              <Text style={styles.itemDesc}>Ovaj objekt još nema nagrada.</Text>
+            )}
+            {loyalty.rewards.map((reward) => {
+              const affordable = loyalty.bodovi >= reward.bodovi;
+              const selected = selectedReward?.id === reward.id;
+              return (
+                <Pressable
+                  key={reward.id}
+                  style={[
+                    styles.item,
+                    selected && { borderColor: COLORS.primary, borderWidth: 2 },
+                    !affordable && { opacity: 0.5 },
+                  ]}
+                  disabled={!affordable}
+                  onPress={() => setSelectedReward(selected ? null : reward)}
+                >
+                  <View style={styles.itemRow}>
+                    <Text style={styles.itemName}>
+                      {selected ? '✅ ' : ''}
+                      {reward.naziv}
+                    </Text>
+                    <Text style={styles.itemPrice}>
+                      {reward.popust === 100 ? 'Gratis' : `−${reward.popust}%`}
+                    </Text>
+                  </View>
+                  <Text style={styles.itemDesc}>
+                    {reward.bodovi} bodova
+                    {reward.popust < 100 ? ` · plaćaš ${rewardPrice(reward).toFixed(2)} €` : ''}
+                    {!affordable ? ` · nedostaje ${reward.bodovi - loyalty.bodovi} bodova` : ''}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </>
+        )}
 
         {isDelivery && (
           <>

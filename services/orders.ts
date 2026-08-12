@@ -24,8 +24,13 @@ export interface Order {
   createdAt: string;
 }
 
-export async function createOrder(code: string, items: OrderItemInput[], napomena?: string): Promise<{ orderId: number }> {
-  const { data } = await api.post<{ orderId: number }>('/orders', { code, items, napomena });
+export async function createOrder(
+  code: string,
+  items: OrderItemInput[],
+  napomena?: string,
+  rewardId?: string
+): Promise<{ orderId: number }> {
+  const { data } = await api.post<{ orderId: number }>('/orders', { code, items, napomena, rewardId });
   return data;
 }
 
@@ -34,7 +39,8 @@ export async function createDeliveryOrder(
   items: OrderItemInput[],
   adresa: string,
   telefon: string,
-  napomena?: string
+  napomena?: string,
+  rewardId?: string
 ): Promise<{ orderId: number }> {
   const { data } = await api.post<{ orderId: number }>('/orders', {
     tip: 'dostava',
@@ -43,6 +49,7 @@ export async function createDeliveryOrder(
     adresa,
     telefon,
     napomena,
+    rewardId,
   });
   return data;
 }

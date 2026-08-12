@@ -59,6 +59,8 @@ export interface VenueInput {
   brojStolova?: number;
   qrNarudzbe?: boolean;
   dostava?: boolean;
+  loyalty?: boolean;
+  bodoviPoEuru?: number;
   status?: 'active' | 'hidden';
 }
 

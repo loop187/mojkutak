@@ -39,6 +39,8 @@ export interface Venue {
   brojStolova: number;
   qrNarudzbe: boolean;
   dostava: boolean;
+  loyalty: boolean;
+  bodoviPoEuru: number;
   coverPhoto: string | null;
   gallery: string[];
   ratingAvg: number;

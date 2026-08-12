@@ -16,6 +16,7 @@ import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
 import { apiErrorMessage } from '../../services/api';
 import { logout, uploadProfilePhoto, validate } from '../../services/auth';
 import { getMyWorkplaces, setShift, Workplace } from '../../services/staff';
+import { getMyLoyaltyBalances, LoyaltyBalance } from '../../services/loyalty';
 import { useAuthStore } from '../../store/useAuthStore';
 
 export default function ProfileScreen() {
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
   const { user, setUser } = useAuthStore();
   const [licenseModalVisible, setLicenseModalVisible] = useState(false);
   const [workplaces, setWorkplaces] = useState<Workplace[]>([]);
+  const [loyaltyBalances, setLoyaltyBalances] = useState<LoyaltyBalance[]>([]);
 
   const isOwner = user?.role === 'owner';
 
@@ -31,6 +33,9 @@ export default function ProfileScreen() {
       if (!user || isOwner) return;
       getMyWorkplaces()
         .then(setWorkplaces)
+        .catch(() => {});
+      getMyLoyaltyBalances()
+        .then(setLoyaltyBalances)
         .catch(() => {});
     }, [user?.id, isOwner])
   );
@@ -131,6 +136,25 @@ export default function ProfileScreen() {
               {user.licenseExpired ? 'Kupi licencu' : 'Produlji licencu'}
             </Text>
           </TouchableOpacity>
+        </View>
+      )}
+
+      {!isOwner && loyaltyBalances.length > 0 && (
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>⭐ Moji bodovi</Text>
+          {loyaltyBalances.map((b) => (
+            <TouchableOpacity
+              key={b.venueId}
+              style={styles.infoRow}
+              onPress={() => router.push(`/venues/${b.venueId}`)}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.infoValue}>{b.venueNaziv}</Text>
+                {!!b.mjesto && <Text style={styles.infoLabel}>{b.mjesto}</Text>}
+              </View>
+              <Text style={[styles.infoValue, { color: COLORS.primary }]}>{b.bodovi} bodova</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 

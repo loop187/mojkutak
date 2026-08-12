@@ -39,6 +39,7 @@ export default function TabsLayout() {
           name="index"
           options={{
             title: 'Pretraga',
+            href: isOwner ? null : undefined,
             tabBarIcon: ({ focused }) => <TabIcon emoji="🔍" focused={focused} />,
           }}
         />
@@ -46,6 +47,7 @@ export default function TabsLayout() {
           name="feed"
           options={{
             title: 'Novosti',
+            href: isOwner ? null : undefined,
             tabBarIcon: ({ focused }) => <TabIcon emoji="📰" focused={focused} />,
           }}
         />
@@ -62,6 +64,22 @@ export default function TabsLayout() {
             title: 'Moji objekti',
             href: isOwner ? undefined : null,
             tabBarIcon: ({ focused }) => <TabIcon emoji="🏪" focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="staff"
+          options={{
+            title: 'Radnici',
+            href: isOwner ? undefined : null,
+            tabBarIcon: ({ focused }) => <TabIcon emoji="🧑‍🍳" focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="loyalty"
+          options={{
+            title: 'Loyalty',
+            href: isOwner ? undefined : null,
+            tabBarIcon: ({ focused }) => <TabIcon emoji="⭐" focused={focused} />,
           }}
         />
         <Tabs.Screen

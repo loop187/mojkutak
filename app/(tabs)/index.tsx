@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import VenueCard from '../../components/VenueCard';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
@@ -17,9 +17,11 @@ import { VENUE_TIPOVI } from '../../constants/options';
 import { apiErrorMessage } from '../../services/api';
 import { Venue } from '../../services/types';
 import { listVenues } from '../../services/venues';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function SearchScreen() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
 
   const [venues, setVenues] = useState<Venue[]>([]);
   const [search, setSearch] = useState('');
@@ -69,6 +71,11 @@ export default function SearchScreen() {
     await load();
     setRefreshing(false);
   };
+
+  // Ugostitelji ne koriste pretragu — preusmjeri na Moje objekte
+  if (user?.role === 'owner') {
+    return <Redirect href="/(tabs)/my-venues" />;
+  }
 
   return (
     <View style={styles.container}>
