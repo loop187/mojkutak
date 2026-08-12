@@ -168,11 +168,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   actions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: SPACING.sm,
     padding: SPACING.md,
   },
   actionBtn: {
-    flex: 1,
+    flexBasis: '30%',
+    flexGrow: 1,
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
