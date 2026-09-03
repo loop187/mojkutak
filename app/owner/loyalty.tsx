@@ -8,9 +8,11 @@ import {
   Switch,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
 import { Select } from '../../components/Select';
 import { apiErrorMessage } from '../../services/api';
@@ -25,6 +27,8 @@ import { MenuCategory, Venue } from '../../services/types';
 
 export default function VenueLoyaltyScreen() {
   const { venueId } = useLocalSearchParams<{ venueId: string }>();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [venue, setVenue] = useState<Venue | null>(null);
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [rewards, setRewards] = useState<LoyaltyReward[]>([]);
@@ -151,7 +155,40 @@ export default function VenueLoyaltyScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: `Loyalty — ${venue?.naziv ?? ''}` }} />
+      <Stack.Screen
+        options={{
+          header: () => (
+            <View
+              style={{
+                paddingTop: insets.top + 8,
+                paddingHorizontal: SPACING.md,
+                paddingBottom: SPACING.sm,
+                backgroundColor: COLORS.card,
+                borderBottomWidth: 1,
+                borderBottomColor: COLORS.border,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+                <Text style={{ fontSize: 24, color: COLORS.primary }}>←</Text>
+              </TouchableOpacity>
+              <Text
+                style={{
+                  marginLeft: SPACING.sm,
+                  fontSize: FONT.subtitle,
+                  fontWeight: '700',
+                  color: COLORS.text,
+                  flex: 1,
+                }}
+                numberOfLines={1}
+              >
+                {`Loyalty — ${venue?.naziv ?? ''}`}
+              </Text>
+            </View>
+          ),
+        }}
+      />
       <ScrollView style={styles.container} contentContainerStyle={{ padding: SPACING.md }}>
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Postavke</Text>

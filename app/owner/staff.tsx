@@ -8,15 +8,19 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
 import { apiErrorMessage } from '../../services/api';
 import { addVenueStaff, getVenueStaff, removeVenueStaff, StaffMember } from '../../services/staff';
 
 export default function VenueStaffScreen() {
   const { venueId } = useLocalSearchParams<{ venueId: string }>();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
@@ -83,7 +87,40 @@ export default function VenueStaffScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: 'Radnici' }} />
+      <Stack.Screen
+        options={{
+          header: () => (
+            <View
+              style={{
+                paddingTop: insets.top + 8,
+                paddingHorizontal: SPACING.md,
+                paddingBottom: SPACING.sm,
+                backgroundColor: COLORS.card,
+                borderBottomWidth: 1,
+                borderBottomColor: COLORS.border,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+                <Text style={{ fontSize: 24, color: COLORS.primary }}>←</Text>
+              </TouchableOpacity>
+              <Text
+                style={{
+                  marginLeft: SPACING.sm,
+                  fontSize: FONT.subtitle,
+                  fontWeight: '700',
+                  color: COLORS.text,
+                  flex: 1,
+                }}
+                numberOfLines={1}
+              >
+                Radnici
+              </Text>
+            </View>
+          ),
+        }}
+      />
       <FlatList
         data={staff}
         keyExtractor={(item) => item.userId}
