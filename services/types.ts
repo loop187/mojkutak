@@ -64,6 +64,22 @@ export interface MenuItem {
   redoslijed: number;
 }
 
+export interface CatalogItem {
+  id: string;
+  source: 'drink' | 'food';
+  displayName: string;
+  category: string;
+  subcategory?: string;
+  brand?: string;
+  variant?: string;
+  volumeMl?: number | null;
+  packageType?: string;
+  isAlcoholic?: boolean | null;
+  alcoholPercent?: number | null;
+  country?: string;
+  tags?: string;
+}
+
 export interface MenuCategory {
   id: string;
   venueId: string;

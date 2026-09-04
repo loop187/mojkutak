@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
 import { apiErrorMessage } from '../../services/api';
 import {
@@ -24,6 +24,7 @@ import { getVenueMenu } from '../../services/venues';
 
 export default function MenuEditScreen() {
   const { venueId } = useLocalSearchParams<{ venueId: string }>();
+  const router = useRouter();
 
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [newCategory, setNewCategory] = useState('');
@@ -200,6 +201,13 @@ export default function MenuEditScreen() {
     <>
       <Stack.Screen options={{ headerShown: true, title: 'Uređivanje menija' }} />
       <ScrollView style={styles.container} contentContainerStyle={{ padding: SPACING.md, paddingBottom: 60 }}>
+        <TouchableOpacity
+          style={styles.catalogBtn}
+          onPress={() => router.push(`/owner/catalog-picker?venueId=${venueId}`)}
+        >
+          <Text style={styles.catalogBtnText}>Popuni iz kataloga</Text>
+        </TouchableOpacity>
+
         <View style={styles.addCategoryRow}>
           <TextInput
             style={styles.addCategoryInput}
@@ -298,6 +306,14 @@ export default function MenuEditScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+  catalogBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.md,
+    paddingVertical: SPACING.sm + 2,
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  catalogBtnText: { color: '#fff', fontWeight: '700', fontSize: FONT.body },
   addCategoryRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
   addCategoryInput: {
     flex: 1,
