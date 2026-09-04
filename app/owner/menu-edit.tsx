@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
 import { apiErrorMessage } from '../../services/api';
 import {
@@ -25,6 +27,7 @@ import { getVenueMenu } from '../../services/venues';
 export default function MenuEditScreen() {
   const { venueId } = useLocalSearchParams<{ venueId: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [menu, setMenu] = useState<MenuCategory[]>([]);
   const [newCategory, setNewCategory] = useState('');
@@ -170,20 +173,29 @@ export default function MenuEditScreen() {
     }
   };
 
+  const doDeleteItem = async (item: MenuItem) => {
+    try {
+      await deleteItem(item.id);
+      load();
+    } catch (e) {
+      Alert.alert('Greška', apiErrorMessage(e));
+    }
+  };
+
   const handleDeleteItem = (item: MenuItem) => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.confirm) {
+      if (window.confirm(`Obrisati artikl "${item.naziv}"?`)) {
+        doDeleteItem(item);
+      }
+      return;
+    }
+
     Alert.alert('Brisanje', `Obrisati artikl "${item.naziv}"?`, [
       { text: 'Ne', style: 'cancel' },
       {
         text: 'Obriši',
         style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteItem(item.id);
-            load();
-          } catch (e) {
-            Alert.alert('Greška', apiErrorMessage(e));
-          }
-        },
+        onPress: () => doDeleteItem(item),
       },
     ]);
   };
@@ -199,7 +211,41 @@ export default function MenuEditScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: true, title: 'Uređivanje menija' }} />
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          header: () => (
+            <View
+              style={{
+                paddingTop: insets.top + 8,
+                paddingHorizontal: SPACING.md,
+                paddingBottom: SPACING.sm,
+                backgroundColor: COLORS.card,
+                borderBottomWidth: 1,
+                borderBottomColor: COLORS.border,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+                <Text style={{ fontSize: 24, color: COLORS.primary }}>←</Text>
+              </TouchableOpacity>
+              <Text
+                style={{
+                  marginLeft: SPACING.sm,
+                  fontSize: FONT.subtitle,
+                  fontWeight: '700',
+                  color: COLORS.text,
+                  flex: 1,
+                }}
+                numberOfLines={1}
+              >
+                Uređivanje menija
+              </Text>
+            </View>
+          ),
+        }}
+      />
       <ScrollView style={styles.container} contentContainerStyle={{ padding: SPACING.md, paddingBottom: 60 }}>
         <TouchableOpacity
           style={styles.catalogBtn}

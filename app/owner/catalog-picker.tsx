@@ -174,10 +174,15 @@ export default function CatalogPickerScreen() {
     setSaving(true);
     try {
       const result = await addCatalogItemsToMenu(venueId, toAdd);
+      setSelected({});
+      setSearch('');
+      setCategory(null);
+      setItems([]);
+      setPage(1);
       Alert.alert(
         'Dodano u meni',
         `${result.count} artikala je dodano u meni.`,
-        [{ text: 'U redu', onPress: () => router.back() }]
+        [{ text: 'U redu' }]
       );
     } catch (e) {
       Alert.alert('Greška', apiErrorMessage(e));
@@ -245,6 +250,7 @@ export default function CatalogPickerScreen() {
     <>
       <Stack.Screen
         options={{
+          headerShown: true,
           header: () => (
             <View
               style={{
