@@ -73,20 +73,29 @@ export default function MenuEditScreen() {
     }
   };
 
+  const doDeleteCategory = async (category: MenuCategory) => {
+    try {
+      await deleteCategory(category.id);
+      load();
+    } catch (e) {
+      Alert.alert('Greška', apiErrorMessage(e));
+    }
+  };
+
   const handleDeleteCategory = (category: MenuCategory) => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.confirm) {
+      if (window.confirm(`Obrisati kategoriju "${category.naziv}" i sve njene artikle?`)) {
+        doDeleteCategory(category);
+      }
+      return;
+    }
+
     Alert.alert('Brisanje', `Obrisati kategoriju "${category.naziv}" i sve njene artikle?`, [
       { text: 'Ne', style: 'cancel' },
       {
         text: 'Obriši',
         style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteCategory(category.id);
-            load();
-          } catch (e) {
-            Alert.alert('Greška', apiErrorMessage(e));
-          }
-        },
+        onPress: () => doDeleteCategory(category),
       },
     ]);
   };
