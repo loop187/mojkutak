@@ -15,7 +15,12 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONT, RADIUS, SPACING } from '../../constants/theme';
 import { apiErrorMessage } from '../../services/api';
-import { addCatalogItemsToMenu, getCatalogItems } from '../../services/catalog';
+import {
+  addCatalogItemsToMenu,
+  CatalogCategory,
+  getCatalogCategories,
+  getCatalogItems,
+} from '../../services/catalog';
 import { CatalogItem } from '../../services/types';
 
 type Source = 'drink' | 'food';
@@ -31,26 +36,45 @@ export default function CatalogPickerScreen() {
   const router = useRouter();
 
   const [source, setSource] = useState<Source>('drink');
-  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState<string | null>(null);
+
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState('');
+
   const [items, setItems] = useState<CatalogItem[]>([]);
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<Record<string, Selection>>({});
 
   const searchInputRef = useRef<TextInput>(null);
 
-  const load = useCallback(
-    async (p: number, opts?: { source?: Source; search?: string }) => {
-      const s = opts?.source ?? source;
-      const q = opts?.search ?? search;
+  const loadCategories = useCallback(async (s: Source) => {
+    setLoading(true);
+    try {
+      const data = await getCatalogCategories(s);
+      setCategories(data);
+    } catch (e) {
+      Alert.alert('Greška', apiErrorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  const loadItems = useCallback(
+    async (
+      p: number,
+      opts: { source: Source; category: string; search?: string }
+    ) => {
       setLoading(true);
       try {
         const data = await getCatalogItems({
-          source: s,
-          search: q,
+          source: opts.source,
+          category: opts.category,
+          search: opts.search,
           page: p,
           per_page: 50,
         });
@@ -62,33 +86,56 @@ export default function CatalogPickerScreen() {
         setLoading(false);
       }
     },
-    [source, search]
+    []
   );
 
   useEffect(() => {
-    load(1);
-  }, []);
+    loadCategories(source);
+  }, [source, loadCategories]);
 
   const handleSourceChange = (s: Source) => {
     setSource(s);
+    setCategory(null);
+    setCategoryFilter('');
     setSearch('');
-    setPage(1);
     setItems([]);
+    setPage(1);
     setSelected({});
-    load(1, { source: s, search: '' });
+    loadCategories(s);
+  };
+
+  const handleCategoryPress = (cat: string) => {
+    setCategory(cat);
+    setSearch('');
+    setItems([]);
+    setPage(1);
+    loadItems(1, { source, category: cat, search: '' });
   };
 
   const handleSearch = () => {
+    if (!category) return;
     setPage(1);
     setItems([]);
-    load(1, { source, search });
+    loadItems(1, { source, category, search });
   };
 
   const handleEndReached = () => {
-    if (loading || page >= totalPages) return;
+    if (!category || loading || page >= totalPages) return;
     const next = page + 1;
     setPage(next);
-    load(next);
+    loadItems(next, { source, category, search });
+  };
+
+  const goBack = () => {
+    if (category) {
+      setCategory(null);
+      setSearch('');
+      setCategoryFilter('');
+      setItems([]);
+      setPage(1);
+    } else {
+      router.back();
+    }
   };
 
   const toggleItem = (item: CatalogItem) => {
@@ -144,6 +191,20 @@ export default function CatalogPickerScreen() {
     (s) => !isNaN(parseFloat(s.cijena.trim().replace(',', '.'))) && parseFloat(s.cijena.trim().replace(',', '.')) > 0
   ).length;
 
+  const filteredCategories = categories.filter((c) =>
+    c.category.toLowerCase().includes(categoryFilter.toLowerCase())
+  );
+
+  const renderCategory = ({ item }: { item: CatalogCategory }) => (
+    <TouchableOpacity style={styles.categoryCard} onPress={() => handleCategoryPress(item.category)}>
+      <Text style={styles.categoryName}>{item.category}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Text style={styles.categoryCount}>{item.itemCount} artikala</Text>
+        <Text style={{ color: COLORS.primary, fontSize: 18 }}>›</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   const renderItem = ({ item }: { item: CatalogItem }) => {
     const sel = selected[item.id];
     const meta = [
@@ -178,6 +239,8 @@ export default function CatalogPickerScreen() {
     );
   };
 
+  const screenTitle = category ?? 'Katalog';
+
   return (
     <>
       <Stack.Screen
@@ -195,7 +258,7 @@ export default function CatalogPickerScreen() {
                 alignItems: 'center',
               }}
             >
-              <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+              <TouchableOpacity onPress={goBack} hitSlop={8}>
                 <Text style={{ fontSize: 24, color: COLORS.primary }}>←</Text>
               </TouchableOpacity>
               <Text
@@ -208,7 +271,7 @@ export default function CatalogPickerScreen() {
                 }}
                 numberOfLines={1}
               >
-                Katalog
+                {screenTitle}
               </Text>
               <TouchableOpacity onPress={() => router.push(`/owner/menu-edit?venueId=${venueId}`)}>
                 <Text style={{ color: COLORS.primary, fontWeight: '700', fontSize: FONT.small }}>
@@ -225,22 +288,6 @@ export default function CatalogPickerScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <View style={{ padding: SPACING.md }}>
-          <View style={styles.searchRow}>
-            <TextInput
-              ref={searchInputRef}
-              style={styles.searchInput}
-              placeholder="Pretraži katalog..."
-              placeholderTextColor={COLORS.textSecondary}
-              value={search}
-              onChangeText={setSearch}
-              onSubmitEditing={handleSearch}
-              returnKeyType="search"
-            />
-            <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
-              <Text style={styles.searchBtnText}>🔍</Text>
-            </TouchableOpacity>
-          </View>
-
           <View style={styles.sourceTabs}>
             {(['drink', 'food'] as Source[]).map((s) => (
               <TouchableOpacity
@@ -254,58 +301,102 @@ export default function CatalogPickerScreen() {
               </TouchableOpacity>
             ))}
           </View>
+
+          {category === null ? (
+            <View style={styles.searchRow}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Filtriraj kategorije..."
+                placeholderTextColor={COLORS.textSecondary}
+                value={categoryFilter}
+                onChangeText={setCategoryFilter}
+              />
+            </View>
+          ) : (
+            <View style={styles.searchRow}>
+              <TextInput
+                ref={searchInputRef}
+                style={styles.searchInput}
+                placeholder={`Pretraži u kategoriji ${category}...`}
+                placeholderTextColor={COLORS.textSecondary}
+                value={search}
+                onChangeText={setSearch}
+                onSubmitEditing={handleSearch}
+                returnKeyType="search"
+              />
+              <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
+                <Text style={styles.searchBtnText}>🔍</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          extraData={selected}
-          contentContainerStyle={{ paddingHorizontal: SPACING.md, paddingBottom: SPACING.xl }}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.5}
-          ListEmptyComponent={
-            loading ? null : (
-              <Text style={styles.empty}>Nema rezultata. Pokušajte drugačiju pretragu.</Text>
-            )
-          }
-          ListFooterComponent={
-            loading ? (
-              <ActivityIndicator size="small" color={COLORS.primary} style={{ marginVertical: SPACING.md }} />
-            ) : null
-          }
-        />
+        {category === null ? (
+          <FlatList
+            data={filteredCategories}
+            keyExtractor={(item) => item.category}
+            renderItem={renderCategory}
+            contentContainerStyle={{ paddingHorizontal: SPACING.md, paddingBottom: SPACING.xl }}
+            ListEmptyComponent={
+              loading ? null : (
+                <Text style={styles.empty}>Nema kategorija.</Text>
+              )
+            }
+          />
+        ) : (
+          <FlatList
+            data={items}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            extraData={selected}
+            contentContainerStyle={{ paddingHorizontal: SPACING.md, paddingBottom: SPACING.xl }}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.5}
+            ListEmptyComponent={
+              loading ? null : (
+                <Text style={styles.empty}>Nema artikala u ovoj kategoriji.</Text>
+              )
+            }
+            ListFooterComponent={
+              loading ? (
+                <ActivityIndicator size="small" color={COLORS.primary} style={{ marginVertical: SPACING.md }} />
+              ) : null
+            }
+          />
+        )}
 
-        <View
-          style={[
-            styles.footer,
-            { paddingBottom: insets.bottom + SPACING.md },
-          ]}
-        >
-          <Text style={styles.footerText}>
-            Označeno: {selectedCount} · s cijenom: {validCount}
-          </Text>
-          <TouchableOpacity
-            style={[styles.saveBtn, (saving || validCount === 0) && styles.saveBtnDisabled]}
-            onPress={handleSave}
-            disabled={saving || validCount === 0}
+        {(validCount > 0 || selectedCount > 0) && (
+          <View
+            style={[
+              styles.footer,
+              { paddingBottom: insets.bottom + SPACING.md },
+            ]}
           >
-            {saving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.saveBtnText}>
-                Dodaj {validCount} u meni
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.footerText}>
+              Označeno: {selectedCount} · s cijenom: {validCount}
+            </Text>
+            <TouchableOpacity
+              style={[styles.saveBtn, (saving || validCount === 0) && styles.saveBtnDisabled]}
+              onPress={handleSave}
+              disabled={saving || validCount === 0}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.saveBtnText}>
+                  Dodaj {validCount} u meni
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  searchRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
+  searchRow: { flexDirection: 'row', gap: SPACING.sm },
   searchInput: {
     flex: 1,
     backgroundColor: COLORS.card,
@@ -325,7 +416,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   searchBtnText: { fontSize: 18 },
-  sourceTabs: { flexDirection: 'row', gap: SPACING.sm },
+  sourceTabs: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
   sourceTab: {
     flex: 1,
     borderWidth: 1,
@@ -338,6 +429,19 @@ const styles = StyleSheet.create({
   sourceTabActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   sourceTabText: { color: COLORS.text, fontWeight: '600' },
   sourceTabTextActive: { color: '#fff' },
+  categoryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  categoryName: { fontSize: FONT.subtitle, fontWeight: '700', color: COLORS.text },
+  categoryCount: { fontSize: FONT.small, color: COLORS.textSecondary },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

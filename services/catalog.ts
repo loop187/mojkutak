@@ -29,6 +29,18 @@ export async function getCatalogItems(filters: CatalogFilters = {}): Promise<Cat
   return data;
 }
 
+export interface CatalogCategory {
+  category: string;
+  itemCount: number;
+}
+
+export async function getCatalogCategories(source: 'drink' | 'food', search?: string): Promise<CatalogCategory[]> {
+  const params: Record<string, string> = { source };
+  if (search) params.search = search;
+  const { data } = await api.get<CatalogCategory[]>('/catalog/categories', { params });
+  return data;
+}
+
 export async function addCatalogItemsToMenu(
   venueId: string,
   items: { catalogItemId: string; cijena: number }[]
