@@ -263,6 +263,7 @@ export default function MenuEditScreen() {
           <Text style={styles.catalogBtnText}>Popuni iz kataloga</Text>
         </TouchableOpacity>
 
+        <Text style={styles.sectionLabel}>Dodaj ručno</Text>
         <View style={styles.addCategoryRow}>
           <TextInput
             style={styles.addCategoryInput}
@@ -331,7 +332,7 @@ export default function MenuEditScreen() {
             />
             <TextInput
               style={styles.modalInput}
-              placeholder="Opis"
+              placeholder="Opis (neobavezno)"
               placeholderTextColor={COLORS.textSecondary}
               value={itemOpis}
               onChangeText={setItemOpis}
@@ -369,6 +370,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   catalogBtnText: { color: '#fff', fontWeight: '700', fontSize: FONT.body },
+  sectionLabel: { fontSize: FONT.small, fontWeight: '700', color: COLORS.textSecondary, marginBottom: SPACING.xs, marginTop: SPACING.sm },
   addCategoryRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
   addCategoryInput: {
     flex: 1,
