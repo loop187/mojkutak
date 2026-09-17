@@ -30,3 +30,6 @@ yarn-error.*
 
 # local env files
 .env*.local
+
+# Firebase (na EAS-u dolazi kao secret GOOGLE_SERVICES_JSON)
+google-services.json
